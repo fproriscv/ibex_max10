@@ -23,7 +23,7 @@ CFLAGS ?= -march=$(ARCH) -mabi=ilp32 -static -mcmodel=medany \
 OBJS := ${SRCS:.c=.o} ${CRT:.S=.o}
 DEPS = $(OBJS:%.o=%.d)
 
-OUTFILES = $(PROGRAM).elf mem.hex $(PROGRAM).vmem $(PROGRAM).bin $(PROGRAM).dis
+OUTFILES = $(PROGRAM).elf mem.bin mem.txt  mem.hex $(PROGRAM).vmem $(PROGRAM).bin $(PROGRAM).dis
 
 all: $(OUTFILES)
 

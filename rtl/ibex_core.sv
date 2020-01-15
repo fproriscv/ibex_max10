@@ -284,13 +284,15 @@ module ibex_core #(
   // main clock gate of the core
   // generates all clocks except the one for the debug unit which is
   // independent
-  prim_clock_gating core_clock_gate_i (
-      .clk_i     ( clk_i           ),
-      .en_i      ( clock_en        ),
-      .test_en_i ( test_en_i       ),
-      .clk_o     ( clk             )
-  );
+  //prim_clock_gating core_clock_gate_i (
+    //  .clk_i     ( clk_i           ),
+      //.en_i      ( clock_en        ),
+      //.test_en_i ( test_en_i       ),
+      //.clk_o     ( clk             )
+  //);
 
+  assign clk = clk_i; 
+  
   //////////////
   // IF stage //
   //////////////
@@ -650,6 +652,7 @@ module ibex_core #(
       .lsu_busy_i              ( lsu_busy               )
   );
 
+  generate
   if (PMPEnable) begin : g_pmp
     logic [33:0] pmp_req_addr [PMP_NUM_CHAN];
     pmp_req_e    pmp_req_type [PMP_NUM_CHAN];
@@ -692,6 +695,7 @@ module ibex_core #(
     assign pmp_req_err[PMP_I] = 1'b0;
     assign pmp_req_err[PMP_D] = 1'b0;
   end
+  endgenerate
 
 `ifdef RVFI
   always_ff @(posedge clk or negedge rst_ni) begin
