@@ -29,9 +29,12 @@ module ibex_alu (
   logic [32:0] operand_b_neg;
 
   // bit reverse operand_a for left shifts and bit counting
-  for (genvar k = 0; k < 32; k++) begin : gen_rev_operand_a
+  generate
+  genvar k;
+  for (k = 0; k < 32; k++) begin : gen_rev_operand_a
     assign operand_a_rev[k] = operand_a_i[31-k];
   end
+  endgenerate
 
   ///////////
   // Adder //
@@ -50,12 +53,9 @@ module ibex_alu (
 
       // Comparator OPs
       ALU_EQ,   ALU_NE,
-      ALU_GTU,  ALU_GEU,
-      ALU_LTU,  ALU_LEU,
-      ALU_GT,   ALU_GE,
-      ALU_LT,   ALU_LE,
-      ALU_SLT,  ALU_SLTU,
-      ALU_SLET, ALU_SLETU: adder_op_b_negate = 1'b1;
+      ALU_GE,   ALU_GEU,
+      ALU_LT,   ALU_LTU,
+      ALU_SLT,  ALU_SLTU: adder_op_b_negate = 1'b1;
 
       default:;
     endcase
@@ -110,9 +110,12 @@ module ibex_alu (
   assign shift_right_result        = shift_right_result_ext[31:0];
 
   // bit reverse the shift_right_result for left shifts
-  for (genvar j = 0; j < 32; j++) begin : gen_rev_shift_right_result
+  generate
+  genvar j;
+  for (j = 0; j < 32; j++) begin : gen_rev_shift_right_result
     assign shift_left_result[j] = shift_right_result[31-j];
   end
+  endgenerate
 
   assign shift_result = shift_left ? shift_left_result : shift_right_result;
 
@@ -128,12 +131,9 @@ module ibex_alu (
     cmp_signed = 1'b0;
 
     unique case (operator_i)
-      ALU_GT,
       ALU_GE,
       ALU_LT,
-      ALU_LE,
-      ALU_SLT,
-      ALU_SLET: begin
+      ALU_SLT: begin
         cmp_signed = 1'b1;
       end
 
@@ -143,7 +143,6 @@ module ibex_alu (
 
   assign is_equal = (adder_result == 32'b0);
   assign is_equal_result_o = is_equal;
-
 
   // Is greater equal
   always_comb begin
@@ -166,8 +165,6 @@ module ibex_alu (
   // (a[31] == 1 && b[31] == 0) => 0
   // (a[31] == 0 && b[31] == 1) => 1
 
-
-
   // generate comparison result
   logic cmp_result;
 
@@ -177,21 +174,15 @@ module ibex_alu (
     unique case (operator_i)
       ALU_EQ:            cmp_result =  is_equal;
       ALU_NE:            cmp_result = ~is_equal;
-      ALU_GT,  ALU_GTU:  cmp_result = is_greater_equal & ~is_equal;
       ALU_GE,  ALU_GEU:  cmp_result = is_greater_equal;
-      ALU_LT,  ALU_SLT,
-      ALU_LTU, ALU_SLTU: cmp_result = ~is_greater_equal;
-      ALU_SLET,
-      ALU_SLETU,
-      ALU_LE,  ALU_LEU:  cmp_result = ~is_greater_equal | is_equal;
+      ALU_LT,  ALU_LTU,
+      ALU_SLT, ALU_SLTU: cmp_result = ~is_greater_equal;
 
       default:;
     endcase
   end
 
   assign comparison_result_o = cmp_result;
-
-
 
   ////////////////
   // Result mux //
@@ -215,12 +206,9 @@ module ibex_alu (
 
       // Comparison Operations
       ALU_EQ,   ALU_NE,
-      ALU_GTU,  ALU_GEU,
-      ALU_LTU,  ALU_LEU,
-      ALU_GT,   ALU_GE,
-      ALU_LT,   ALU_LE,
-      ALU_SLT,  ALU_SLTU,
-      ALU_SLET, ALU_SLETU: result_o = {31'h0,cmp_result};
+      ALU_GE,   ALU_GEU,
+      ALU_LT,   ALU_LTU,
+      ALU_SLT,  ALU_SLTU: result_o = {31'h0,cmp_result};
 
       default:;
     endcase
