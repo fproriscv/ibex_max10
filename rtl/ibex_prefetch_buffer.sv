@@ -177,7 +177,9 @@ module ibex_prefetch_buffer (
   // Request outstanding queue //
   ///////////////////////////////
 
-  for (genvar i = 0; i < NUM_REQS; i++) begin : g_outstanding_reqs
+  generate
+  genvar i;
+  for (i = 0; i < NUM_REQS; i++) begin : g_outstanding_reqs
     // Request 0 (always the oldest outstanding request)
     if (i == 0) begin : g_req0
       // A request becomes outstanding once granted, and is cleared once the rvalid is received.
@@ -207,6 +209,7 @@ module ibex_prefetch_buffer (
                                       rdata_pmp_err_q[i];
     end
   end
+  endgenerate
 
   // Shift the entries down on each instr_rvalid_i
   assign rdata_outstanding_s = rvalid_or_pmp_err ? {1'b0,rdata_outstanding_n[NUM_REQS-1:1]} :

@@ -9,7 +9,8 @@
  * Execution block: Hosts ALU and MUL/DIV unit
  */
 module ibex_ex_block #(
-    parameter bit RV32M = 1
+    parameter bit    RV32M                    = 1,
+    parameter        MultiplierImplementation = "fast"
 ) (
     input  logic              clk_i,
     input  logic              rst_ni,
@@ -38,8 +39,6 @@ module ibex_ex_block #(
 
   import ibex_pkg::*;
 
-  localparam bit MULT_TYPE = 1; // 0 -> SLOW, 1 -> FAST
-
   logic [31:0] alu_result, multdiv_result;
 
   logic [32:0] multdiv_alu_operand_b, multdiv_alu_operand_a;
@@ -53,13 +52,15 @@ module ibex_ex_block #(
     At synthesis time, all the combinational and sequential logic
     from the multdiv_i module are eliminated
   */
+  generate
   if (RV32M) begin : gen_multdiv_m
-    assign multdiv_en_sel     = MULT_TYPE ? div_en_i : mult_en_i | div_en_i;
-    assign multdiv_en         = mult_en_i | div_en_i;
+    assign multdiv_en_sel = MultiplierImplementation == "fast" ? div_en_i : mult_en_i | div_en_i;
+    assign multdiv_en     = mult_en_i | div_en_i;
   end else begin : gen_multdiv_no_m
-    assign multdiv_en_sel     = 1'b0;
-    assign multdiv_en         = 1'b0;
+    assign multdiv_en_sel = 1'b0;
+    assign multdiv_en     = 1'b0;
   end
+  endgenerate
 
   assign regfile_wdata_ex_o = multdiv_en ? multdiv_result : alu_result;
 
@@ -89,7 +90,8 @@ module ibex_ex_block #(
   // Multiplier //
   ////////////////
 
-  if (!MULT_TYPE) begin : gen_multdiv_slow
+  generate
+  if (MultiplierImplementation == "slow") begin : gen_multdiv_slow
     ibex_multdiv_slow multdiv_i (
         .clk_i              ( clk_i                 ),
         .rst_ni             ( rst_ni                ),
@@ -107,7 +109,7 @@ module ibex_ex_block #(
         .alu_operand_b_o    ( multdiv_alu_operand_b ),
         .multdiv_result_o   ( multdiv_result        )
     );
-  end else begin : gen_multdiv_fast
+  end else if (MultiplierImplementation == "fast") begin : gen_multdiv_fast
     ibex_multdiv_fast multdiv_i (
         .clk_i              ( clk_i                 ),
         .rst_ni             ( rst_ni                ),
@@ -126,6 +128,7 @@ module ibex_ex_block #(
         .multdiv_result_o   ( multdiv_result        )
     );
   end
+  endgenerate
 
   // ALU output valid in same cycle, multiplier/divider may require multiple cycles
   assign ex_valid_o = multdiv_en ? multdiv_valid : 1'b1;

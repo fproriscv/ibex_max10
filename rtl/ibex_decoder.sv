@@ -118,6 +118,7 @@ module ibex_decoder #(
   ////////////////////
   // Register check //
   ////////////////////
+  generate
   if (RV32E) begin : gen_rv32e_reg_check_active
     assign illegal_reg_rv32e = ((regfile_raddr_a_o[4] & (alu_op_a_mux_sel_o == OP_A_REG_A)) |
                                 (regfile_raddr_b_o[4] & (alu_op_b_mux_sel_o == OP_B_REG_B)) |
@@ -125,6 +126,7 @@ module ibex_decoder #(
   end else begin : gen_rv32e_reg_check_inactive
     assign illegal_reg_rv32e = 1'b0;
   end
+  endgenerate
 
   ///////////////////////
   // CSR operand check //
