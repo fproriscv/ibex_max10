@@ -4,14 +4,13 @@
 
 module top_de10_lite (
     input               clk,
-    input               IO_RST_N,
     output [3:0]        led,
-	 input               sw[0]
+	 input               sw
 );
-// connect IO_RST_N to switch s
+
   parameter int          MEM_SIZE  = 64 * 1024; // 64 kB
   parameter logic [31:0] MEM_START = 32'h00000000;
-  parameter logic [31:0] MEM_MASK  = MEM_SIZE-1;
+  parameter logic [31:0] MEM_MASK  = MEM_SIZE-1; 
 
   logic clk_sys, rst_sys_n;
 
@@ -142,19 +141,11 @@ module top_de10_lite (
       end
     end
   end
+  
   assign led = leds;
   
-  assign rst_sys_n = sw[0];
+  assign rst_sys_n = !sw;
   
   assign clk_sys = clk;
-  
-  // Clock and reset
-//  clkgen_xil7series
-//    clkgen(
-//      .clk,
-//      .IO_RST_N,
-//      .clk_sys,
-//      .rst_sys_n
-//    );
 
 endmodule

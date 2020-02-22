@@ -9,8 +9,7 @@
 module ram_1p #(
     parameter int Width    = 32, // bit
     parameter int Depth    = 128,
-
-    // Do not touch
+		
     parameter int Aw = $clog2(Depth)
 ) (
     input                    clk_i,
@@ -23,13 +22,13 @@ module ram_1p #(
     output logic             rvalid_o,
     output logic [Width-1:0] rdata_o
 );
-//?????
-  logic [Width-1:0] storage [Depth];
 
-  // Xilinx FPGA specific Dual-port RAM coding style
+  (* ram_init_file = "../../ibex_max10-rtl_compiles_on_quartus/examples/sw/led/mem.hex" *) logic [Width-1:0] storage [Depth];
+  
+  // Dual-port RAM coding style
   // using always instead of always_ff to avoid 'ICPD  - illegal combination of drivers' error
   // thrown due to 'storage' being driven by two always processes below
-  always_ff @(posedge clk_i) begin
+  always @(posedge clk_i) begin
     if (req_i) begin
       if (write_i) begin
         storage[addr_i] <= wdata_i;
@@ -45,12 +44,6 @@ module ram_1p #(
       rvalid_o <= req_i;
     end
   end
-
-  //`ifdef SRAM_INIT_FILE
-    localparam MEM_FILE = "../../ibex/ibex/examples/sw/led/mem.txt";
-    initial begin
-      $display("Initializing SRAM from %s", MEM_FILE);
-      $readmemh(MEM_FILE, storage);
-    end
-  //`endif
+  
 endmodule
+
