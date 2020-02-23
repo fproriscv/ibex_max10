@@ -10,7 +10,7 @@ ARCH = rv32imc
 # ARCH = rv32im # to disable compressed instructions
 SRCS = $(PROGRAM).c
 
-CC = /opt/riscv/bin/riscv32-unknown-elf-gcc
+CC = riscv32-unknown-elf-gcc
 
 OBJCOPY ?= $(subst gcc,objcopy,$(wordlist 1,1,$(CC)))
 OBJDUMP ?= $(subst gcc,objdump,$(wordlist 1,1,$(CC)))
@@ -23,7 +23,8 @@ CFLAGS ?= -march=$(ARCH) -mabi=ilp32 -static -mcmodel=medany \
 OBJS := ${SRCS:.c=.o} ${CRT:.S=.o}
 DEPS = $(OBJS:%.o=%.d)
 
-OUTFILES = $(PROGRAM).elf mem.bin mem.txt  mem.hex $(PROGRAM).vmem $(PROGRAM).bin $(PROGRAM).dis
+OUTFILES = $(PROGRAM).elf $(PROGRAM).bin $(PROGRAM).txt  $(PROGRAM).hex \
+					 $(PROGRAM).vmem $(PROGRAM).bin $(PROGRAM).dis
 
 all: $(OUTFILES)
 
@@ -52,20 +53,18 @@ $(PROGRAM).elf: $(OBJS) $(LINKER_SCRIPT)
 %.o: %.S
 	$(CC) $(CFLAGS) -MMD -c $(INCS) -o $@ $<
 
+# convert to an ASCII hex file for simulation
+%.txt: %.bin
+	hexdump -v -e '"%08x\n"' $< > $@
+
+# convert to an Intel HEX file for downloading to the FPGA
+%.hex: %.txt
+	python txt2hex.py $< $@ 4
+
 clean:
 	$(RM) -f *.o *.d
 
 distclean: clean
 	$(RM) -f $(OUTFILES)
 
-# extract the binary data from data and text sections to get a binary image of memory
-mem.bin: $(PROGRAM).elf
-	$(OBJCOPY) -O binary --only-section=.data* --only-section=.text* $< $@
 
-# convert to an ASCII hex file for simulation
-mem.txt: mem.bin
-	hexdump -v -e '"%08x\n"' $< > $@
-
-# convert to an Intel HEX file for downloading to the FPGA
-mem.hex: mem.txt
-	python txt2hex.py $< $@ 4
