@@ -23,7 +23,7 @@ module ram_1p #(
     output logic [Width-1:0] rdata_o
 );
 
-  (* ram_init_file = "../../ibex_max10-rtl_compiles_on_quartus/examples/sw/led/mem.hex" *) logic [Width-1:0] storage [Depth];
+  (* ram_init_file = "../led_ctors/build/led.hex" *) logic [Width-1:0] storage [Depth];
   
   // Dual-port RAM coding style
   // using always instead of always_ff to avoid 'ICPD  - illegal combination of drivers' error
